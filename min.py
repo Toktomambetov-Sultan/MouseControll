@@ -10,11 +10,6 @@ hands = mpHands.Hands(min_detection_confidence=0.7)
 mpDraw = mp.solutions.mediapipe.python.solutions.drawing_utils
 ScreenSize = pg.size()
 is_clicked = False
-async def sleep(): 
-	global is_clicked
-	await asyncio.sleep(0.5)
-	is_clicked = False
-	
 	
 while True:
 	success, img = cap.read()
@@ -34,14 +29,19 @@ while True:
 						autopy.mouse.move(ScreenSize.width*(1-x),ScreenSize.height*y)
 					except Exception as inst: 
 						print("Error: ", inst)
-			if handLms.landmark[4] != None and handLms.landmark[8] != None and not is_clicked : 
+			if handLms.landmark[4] != None and handLms.landmark[8] != None: 
 				x1,y1,z1 = handLms.landmark[4].x,handLms.landmark[4].y,handLms.landmark[4].z
 				x2,y2,z2 = handLms.landmark[8].x,handLms.landmark[8].y,handLms.landmark[8].z
 				lenght = ((x2-x1)**2 + (y2-y1)**2 + (z2-z1)**2)
 				if lenght <= 0.005:
 					is_clicked = True
-					autopy.mouse.click()
-					asyncio.run(sleep())
+					autopy.mouse.toggle(down=True, button=autopy.mouse.Button.LEFT)
+				else: 
+					print("toogle down", is_clicked)
+					if is_clicked:
+						print("is_click works")
+						is_clicked = False
+						autopy.mouse.toggle(down=False, button=autopy.mouse.Button.LEFT)
 			mpDraw.draw_landmarks(img,handLms,mpHands.HAND_CONNECTIONS)
 	cv2.imshow("Image",cv2.flip(img,1))
 	cv2.waitKey(1)
