@@ -1,9 +1,7 @@
 import cv2
 import mediapipe as mp
-import time
 import pyautogui as pg
 import autopy
-import asyncio
 cap = cv2.VideoCapture(0)
 mpHands = mp.solutions.mediapipe.python.solutions.hands
 hands = mpHands.Hands(min_detection_confidence=0.7)
@@ -33,22 +31,13 @@ while True:
 				x1,y1,z1 = handLms.landmark[4].x,handLms.landmark[4].y,handLms.landmark[4].z
 				x2,y2,z2 = handLms.landmark[8].x,handLms.landmark[8].y,handLms.landmark[8].z
 				lenght = ((x2-x1)**2 + (y2-y1)**2 + (z2-z1)**2)
-				if lenght <= 0.005:
+				if lenght <= 0.004:
 					is_clicked = True
 					autopy.mouse.toggle(down=True, button=autopy.mouse.Button.LEFT)
 				else: 
-					print("toogle down", is_clicked)
 					if is_clicked:
-						print("is_click works")
 						is_clicked = False
 						autopy.mouse.toggle(down=False, button=autopy.mouse.Button.LEFT)
 			mpDraw.draw_landmarks(img,handLms,mpHands.HAND_CONNECTIONS)
 	cv2.imshow("Image",cv2.flip(img,1))
 	cv2.waitKey(1)
-
-# import handMatching 
-# a = handMatching()
-
-# def detect(landmarks): ...
-# a.apply(detect)
-# a.run()
