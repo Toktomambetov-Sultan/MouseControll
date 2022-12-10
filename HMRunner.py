@@ -7,23 +7,19 @@ mpHands = mp.solutions.mediapipe.python.solutions.hands
 hands = mpHands.Hands(min_detection_confidence=0.7)
 mpDraw = mp.solutions.mediapipe.python.solutions.drawing_utils
 ScreenSize = pg.size()
-is_clicked = False
 
 
 class HMRunner:
-    def __init__(self, defaultState):
-        self._is_clicked = False
+    def __init__(self, defaultState={}):
         self.state = defaultState
-        self.events = [{
-            "func": lambda x: x,
-            "name": "click"
-        }]
+        self.events = []
+        self.ScreenSize = ScreenSize
 
     def addEvent(self, func, name):
-    	self.events.append({
-			"func": func,
-
-		})
+        self.events.append({
+            "func": func,
+            "name": name
+        })
 
     def run(self):
         while True:
@@ -32,37 +28,16 @@ class HMRunner:
             results = hands.process(imgRGB)
             if results.multi_hand_landmarks:
                 for handLms in results.multi_hand_landmarks:
-                    for id, lm in enumerate(handLms.landmark):
-                        if id == 0:
-                            try:
-                                x = (lm.x - 0.2)/0.6
-                                if x >= 1:
-                                    x = 1
-                                if x <= 0:
-                                    x = 0
-                                y = (lm.y - 0.4)/0.4
-                                if y >= 1:
-                                    y = 1
-                                if y <= 0:
-                                    y = 0
-                                autopy.mouse.move(
-                                    ScreenSize.width*(1-x), ScreenSize.height*y)
-                            except Exception as inst:
-                                print("Error: ", inst)
-                    if handLms.landmark[4] != None and handLms.landmark[8] != None:
-                        x1, y1, z1 = handLms.landmark[4].x, handLms.landmark[4].y, handLms.landmark[4].z
-                        x2, y2, z2 = handLms.landmark[8].x, handLms.landmark[8].y, handLms.landmark[8].z
-                        lenght = ((x2-x1)**2 + (y2-y1)**2 + (z2-z1)**2)
-                        if lenght <= 0.004:
-                            self._is_clicked = True
-                            autopy.mouse.toggle(
-                                down=True, button=autopy.mouse.Button.LEFT)
-                        else:
-                            if self._is_clicked:
-                                self._is_clicked = False
-                                autopy.mouse.toggle(
-                                    down=False, button=autopy.mouse.Button.LEFT)
+                    for event in self.events:
+                        if event["func"](handLms, self):
+                            img = cv2.flip(img, 1)
+                            cv2.putText(
+                                img, event["name"], (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2, cv2.LINE_AA), 1
+                            img = cv2.flip(img, 1)
+                            print(event["name"])
                     mpDraw.draw_landmarks(
                         img, handLms, mpHands.HAND_CONNECTIONS)
-            cv2.imshow("Image", cv2.flip(img, 1))
+
+            img = cv2.flip(img, 1)
+            cv2.imshow("Image", img)
             cv2.waitKey(1)
